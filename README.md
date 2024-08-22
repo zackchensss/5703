@@ -5,13 +5,18 @@ users can perform payment operations on the Open WebUI platform, support multipl
 
 ## Functional characteristics
 **Payment integration:** Support for payments through the Stripe API, including single payments and subscriptions.
+
 **Response processing:** processing payment success, failure, cancellation and other states, and feedback to the user.
+
 **Payment log:** Records detailed payment log information for easy tracking and debugging.
+
 **Security:** Integrated with Stripe's security mechanism.
 
 ## System requirement
-**Operating system:** Any operating system that supports Python (Windows, macOS, Linux)
-**Python version:** 3.10 or higher
-**Dependencies:** See the list of dependencies in the requirements.txt file
+**Operating system:** Any operating system that supports Python (Windows, macOS, Linux).
+
+**Python version:** 3.10 or higher.
+
+**Dependencies:** See the list of dependencies in the requirements.txt file.
 
 ## Installation and configuration
