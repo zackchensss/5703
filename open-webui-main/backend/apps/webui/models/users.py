@@ -8,12 +8,23 @@ from utils.misc import get_gravatar_url
 
 from apps.webui.internal.db import Base, JSONField, Session, get_db
 from apps.webui.models.chats import Chats
+from sqlalchemy import Boolean, BigInteger
+
+
 
 ####################
 # User DB Schema
 ####################
 
+class User(Base):
+    __tablename__ = "user"
 
+    # Existing fields...
+    is_subscribed = Column(Boolean, default=False)  # Whether the user is subscribed
+    subscription_expiry = Column(BigInteger, nullable=True)  # Subscription expiry date as a timestamp
+
+    # Remaining fields...
+    
 class User(Base):
     __tablename__ = "user"
 
@@ -58,7 +69,8 @@ class UserModel(BaseModel):
     oauth_sub: Optional[str] = None
 
     model_config = ConfigDict(from_attributes=True)
-
+    is_subscribed: bool = False
+    subscription_expiry: Optional[int] = None  # Optional, because not all users may have a subscription
 
 ####################
 # Forms
@@ -86,23 +98,25 @@ class UsersTable:
         email: str,
         profile_image_url: str = "/user.png",
         role: str = "pending",
+        is_subscribed: bool = False,
+        subscription_expiry: Optional[int] = None,
         oauth_sub: Optional[str] = None,
     ) -> Optional[UserModel]:
         with get_db() as db:
             user = UserModel(
-                **{
-                    "id": id,
-                    "name": name,
-                    "email": email,
-                    "role": role,
-                    "profile_image_url": profile_image_url,
-                    "last_active_at": int(time.time()),
-                    "created_at": int(time.time()),
-                    "updated_at": int(time.time()),
-                    "oauth_sub": oauth_sub,
-                }
+                id=id,
+                name=name,
+                email=email,
+                profile_image_url=profile_image_url,
+                role=role,
+                is_subscribed=is_subscribed,
+                subscription_expiry=subscription_expiry,
+                last_active_at=int(time.time()),
+                created_at=int(time.time()),
+                updated_at=int(time.time()),
+                oauth_sub=oauth_sub,
             )
-            result = User(**user.model_dump())
+            result = User(**user.dict())
             db.add(result)
             db.commit()
             db.refresh(result)
@@ -110,6 +124,16 @@ class UsersTable:
                 return user
             else:
                 return None
+
+    def update_user_by_id(self, id: str, updated: dict) -> Optional[UserModel]:
+        with get_db() as db:
+            db.query(User).filter_by(id=id).update(updated)
+            db.commit()
+            user = db.query(User).filter_by(id=id).first()
+            return UserModel.parse_obj(user) if user else None
+
+# Example usage might need to be adjusted for your specific application context.
+
 
     def get_user_by_id(self, id: str) -> Optional[UserModel]:
         try:
