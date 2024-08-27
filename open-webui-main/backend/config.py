@@ -1423,3 +1423,15 @@ DATABASE_URL = os.environ.get("DATABASE_URL", f"sqlite:///{DATA_DIR}/webui.db")
 # Replace the postgres:// with postgresql://
 if "postgres://" in DATABASE_URL:
     DATABASE_URL = DATABASE_URL.replace("postgres://", "postgresql://")
+
+####################################
+# Stripe
+####################################
+import stripe
+
+STRIPE_API_KEY = os.getenv("STRIPE_API_KEY", "sk_test_51PpnBARwKnsYpxFvqOIE6TwPUD4MPyHODJVOcnlsqrJbD8U82aN98ZUwu5NmtXAHuMyQKjPORI089WcNT9d4du6300KTgiURES")
+STRIPE_WEBHOOK_SECRET = os.getenv("STRIPE_WEBHOOK_SECRET", "whsec_45695097e5d997dbbb477f49b5f9224400d1b5764b9eb0acbd85e3a310a1a0be")
+STRIPE_DEFAULT_CURRENCY = os.getenv("STRIPE_DEFAULT_CURRENCY", "usd")
+
+stripe.api_key = STRIPE_API_KEY
+STRIPE_WEBHOOK_URL = os.getenv("STRIPE_WEBHOOK_URL", "https://your-domain.com/stripe/webhook")

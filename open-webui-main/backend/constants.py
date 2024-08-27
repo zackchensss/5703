@@ -14,7 +14,13 @@ class WEBHOOK_MESSAGES(str, Enum):
     USER_SIGNUP = lambda username="": (
         f"New user signed up: {username}" if username else "New user signed up"
     )
-
+    ### Stripe
+    STRIPE_PAYMENT_SUCCESS = lambda amount="": (
+        f"Payment of {amount} was successful." if amount else "Payment was successful."
+    )
+    STRIPE_PAYMENT_FAILED = lambda reason="": (
+        f"Payment failed due to: {reason}" if reason else "Payment failed."
+    )
 
 class ERROR_MESSAGES(str, Enum):
     def __str__(self) -> str:
