@@ -1,6 +1,6 @@
 
 import os
-from flask import Flask, redirect, jsonify, json, request, current_app
+from flask import Flask, redirect, jsonify, request
 import stripe
 import webbrowser
 import threading
@@ -91,16 +91,25 @@ def stripe_webhook():
 
     if event_type == 'checkout.session.completed':
         status = data['payment_status']
+        save_to_database()
+        print("checkout.session.completed")
         # add more success
 
     elif event_type == 'customer.subscription.deleted':
         print(f"Subscription {data['id']} deleted")
         # add more delete
 
+    elif event_type == 'invoice.payment_succeeded':
+        print("'invoice.payment_succeeded'")
+
+    elif event_type == 'payment_method.attached':
+        print("payment_method.attached")
+
+
     else:
         print(f"Unhandled event type: {event_type}")
 
-    save_to_database()
+
     return jsonify({'status': 'success'}), 200
 
 ###存到数据库
