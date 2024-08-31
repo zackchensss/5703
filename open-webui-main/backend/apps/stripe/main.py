@@ -1,10 +1,12 @@
 
 import os
+from datetime import time
+
 from flask import Flask, redirect, jsonify, request
 import stripe
 import webbrowser
 import threading
-
+from apps.webui.models.users import Users
 
 # This is your test secret API key.
 stripe.api_key = 'sk_test_51PpnBARwKnsYpxFvqOIE6TwPUD4MPyHODJVOcnlsqrJbD8U82aN98ZUwu5NmtXAHuMyQKjPORI089WcNT9d4du6300KTgiURES'
@@ -115,11 +117,30 @@ def stripe_webhook():
 ###存到数据库
 def save_to_database():
     global customer_email, price, price_id, product, product_id, status
-    print("database")
-    print(f"status: {status},")
-    print(f"email: {customer_email}, ")
-    print(f"Price: {price}, Price ID: {price_id}")
-    print(f"Product: {product}, Product ID: {product_id}")
+    try:
+        # get the user
+        user = Users.get_user_by_email(customer_email)
+        if user:
+            user.subscription_status = status
+            # decide the expire time based on different product
+            if product == "open webui ultra":
+                user.subscription_expiration = int(time.time()) + 365 * 24 * 60 * 60  # yearyly
+            elif product == "open webui pro":
+                user.subscription_expiration = int(time.time()) + 30 * 24 * 60 * 60  # monthly
+            else:
+                return
+            # user.product = product
+            # user.price = price
+            # update the database
+            Users.update_user_by_id(user.id, {
+                "subscription_status": user.subscription_status,
+                "subscription_expiration": user.subscription_expiration,
+                # "product": user.product,
+                # "price": user.price
+            })
+    except Exception as e:
+        print(f"Wrong when updating the subscription status: {e}")
+
 
 # cancel subscription
 @app.route('/cancel-subscription', methods=['POST'])
