@@ -26,7 +26,7 @@ from starlette.middleware.base import BaseHTTPMiddleware
 from starlette.middleware.sessions import SessionMiddleware
 from starlette.responses import StreamingResponse, Response, RedirectResponse
 
-
+from apps.stripe.main import router as stripe_router
 from apps.socket.main import app as socket_app, get_event_emitter, get_event_call
 from apps.ollama.main import (
     app as ollama_app,
@@ -916,6 +916,7 @@ app.mount("/audio/api/v1", audio_app)
 app.mount("/rag/api/v1", rag_app)
 
 app.mount("/api/v1", webui_app)
+app.include_router(stripe_router, prefix="/api/stripe")
 
 webui_app.state.EMBEDDING_FUNCTION = rag_app.state.EMBEDDING_FUNCTION
 
