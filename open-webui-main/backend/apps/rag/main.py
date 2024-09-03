@@ -813,8 +813,8 @@ def search_web(engine: str, query: str) -> list[SearchResult]:
             raise Exception("No SEARXNG_QUERY_URL found in environment variables")
     elif engine == "google_pse":
         if (
-                app.state.config.GOOGLE_PSE_API_KEY
-                and app.state.config.GOOGLE_PSE_ENGINE_ID
+            app.state.config.GOOGLE_PSE_API_KEY
+            and app.state.config.GOOGLE_PSE_ENGINE_ID
         ):
             return search_google_pse(
                 app.state.config.GOOGLE_PSE_API_KEY,
