@@ -304,7 +304,7 @@ async def get_function_call_response(
                 f"{message['role'].upper()}: \"\"\"{message['content']}\"\"\""
                 for message in messages[::-1][:4]
             ]
-    )
+        )
         + f"\nQuery: {user_message}"
     )
 
