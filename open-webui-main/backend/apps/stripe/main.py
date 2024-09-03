@@ -4,11 +4,20 @@ import threading
 import time
 from fastapi.responses import RedirectResponse
 from apps.webui.models.users import Users
+from flask import Flask, redirect, jsonify, request
+import logging
 
 stripe.api_key = 'sk_test_51PpnBARwKnsYpxFvqOIE6TwPUD4MPyHODJVOcnlsqrJbD8U82aN98ZUwu5NmtXAHuMyQKjPORI089WcNT9d4du6300KTgiURES'
 webhook_secret = 'whsec_45695097e5d997dbbb477f49b5f9224400d1b5764b9eb0acbd85e3a310a1a0be'
 
 router = APIRouter()
+
+customer_email = None
+price = None
+price_id = None
+product = None
+product_id = None
+status = None
 
 @router.post("/api/webhook/stripe")
 async def stripe_webhook(request: Request):
@@ -22,9 +31,9 @@ async def stripe_webhook(request: Request):
             payload, sig_header, webhook_secret
         )
     except ValueError as e:
-        raise HTTPException(status_code=400, detail="Invalid payload")
+        return {"error": "Invalid payload"}, 400
     except stripe.error.SignatureVerificationError as e:
-        raise HTTPException(status_code=400, detail="Invalid signature")
+        return {"error": "Invalid signature"}, 400
 
     event_type = event['type']
     data = event['data']['object']
@@ -36,23 +45,68 @@ async def stripe_webhook(request: Request):
             customer = stripe.Customer.retrieve(customer_id)
             customer_email = customer.email
 
+    if event_type in ['customer.subscription.created', 'customer.subscription.updated']:
+        if 'items' in data:
+            price_id = data['items']['data'][0]['price']['id']
+            product_id = data['items']['data'][0]['price']['product']
+
+            if price_id == "price_1PsP8yRwKnsYpxFv5d2FxFUI":
+                price = "99.99"
+            elif price_id == "price_1PrbewRwKnsYpxFvTZXXC1JK":
+                price = "9.99"
+            elif price_id == "price_1PuQKORwKnsYpxFvKj70Ftv3":
+                price = "4.99"
+            else:
+                price = "error"
+
+            if product_id == "prod_QjsurwseJK95jp":
+                product = "open webui ultra"
+            elif product_id == "prod_Qj3merrWlM46hw":
+                product = "open webui pro"
+            elif product_id == "prod_QlyGyQkYhUTekg":
+                product = "open webui mini"
+            else:
+                product = "error"
+        else:
+            print("No items found in the subscription data.")
+
     if event_type == 'checkout.session.completed':
         status = data['payment_status']
         await save_to_database()
+        print("checkout.session.completed")
+        # add more success logic
 
-    return {"status": "success"}
+    elif event_type == 'customer.subscription.deleted':
+        print(f"Subscription {data['id']} deleted")
+        # add delete logic
+
+    elif event_type == 'invoice.payment_succeeded':
+        print("'invoice.payment_succeeded'")
+
+    elif event_type == 'payment_method.attached':
+        print("payment_method.attached")
+
+    else:
+        print(f"Unhandled event type: {event_type}")
+
+    return {"status": "success"}, 200
 
 async def save_to_database():
     global customer_email, price, price_id, product, product_id, status
-    print
+    print("save to database test")
+    print(f"information: {customer_email},{price}.{product},{status}")
+    logging.info(f"information: {customer_email},{price}.{product},{status}")
     try:
         user = Users.get_user_by_email(customer_email)
         if user:
             user.subscription_status = status
+
             if product == "open webui ultra":
                 user.subscription_expiration = int(time.time()) + 365 * 24 * 60 * 60  # yearly
             elif product == "open webui pro":
                 user.subscription_expiration = int(time.time()) + 30 * 24 * 60 * 60  # monthly
+            elif product == "open webui mini":
+                user.subscription_expiration = int(time.time()) + 7 * 24 * 60 * 60
 
             await Users.update_user_by_id(user.id, {
                 "subscription_status": user.subscription_status,
@@ -63,14 +117,13 @@ async def save_to_database():
 
 @router.get("/subscribe")
 async def subscribe():
-    #mini
+
+    ### mini
     stripe_checkout_url = "https://buy.stripe.com/test_9AQfZ31oIbhL3Ic28a"
-
-    #pro
-    #stripe_checkout_url = "https://buy.stripe.com/test_5kA149c3m3PjceI3cc"
-
-    #ultra
-    #stripe_checkout_url = "https://buy.stripe.com/test_eVa5kpebudpT3Ic6op"
+    ### pro
+    # stripe_checkout_url = "https://buy.stripe.com/test_5kA149c3m3PjceI3cc"
+    ### ultra
+    # stripe_checkout_url = "https://buy.stripe.com/test_eVa5kpebudpT3Ic6op"
     return RedirectResponse(url=stripe_checkout_url)
 
 # cancel
