@@ -189,8 +189,8 @@ app.state.config.RAG_WEB_SEARCH_CONCURRENT_REQUESTS = RAG_WEB_SEARCH_CONCURRENT_
 
 
 def update_embedding_model(
-    embedding_model: str,
-    update_model: bool = False,
+        embedding_model: str,
+        update_model: bool = False,
 ):
     if embedding_model and app.state.config.RAG_EMBEDDING_ENGINE == "":
         import sentence_transformers
@@ -205,8 +205,8 @@ def update_embedding_model(
 
 
 def update_reranking_model(
-    reranking_model: str,
-    update_model: bool = False,
+        reranking_model: str,
+        update_model: bool = False,
 ):
     if reranking_model:
         import sentence_transformers
@@ -314,7 +314,7 @@ class EmbeddingModelUpdateForm(BaseModel):
 
 @app.post("/embedding/update")
 async def update_embedding_config(
-    form_data: EmbeddingModelUpdateForm, user=Depends(get_admin_user)
+        form_data: EmbeddingModelUpdateForm, user=Depends(get_admin_user)
 ):
     log.info(
         f"Updating embedding model: {app.state.config.RAG_EMBEDDING_MODEL} to {form_data.embedding_model}"
@@ -368,7 +368,7 @@ class RerankingModelUpdateForm(BaseModel):
 
 @app.post("/reranking/update")
 async def update_reranking_config(
-    form_data: RerankingModelUpdateForm, user=Depends(get_admin_user)
+        form_data: RerankingModelUpdateForm, user=Depends(get_admin_user)
 ):
     log.info(
         f"Updating reranking model: {app.state.config.RAG_RERANKING_MODEL} to {form_data.reranking_model}"
@@ -582,7 +582,7 @@ class QuerySettingsForm(BaseModel):
 
 @app.post("/query/settings/update")
 async def update_query_settings(
-    form_data: QuerySettingsForm, user=Depends(get_admin_user)
+        form_data: QuerySettingsForm, user=Depends(get_admin_user)
 ):
     app.state.config.RAG_TEMPLATE = (
         form_data.template if form_data.template else RAG_TEMPLATE
@@ -611,8 +611,8 @@ class QueryDocForm(BaseModel):
 
 @app.post("/query/doc")
 def query_doc_handler(
-    form_data: QueryDocForm,
-    user=Depends(get_verified_user),
+        form_data: QueryDocForm,
+        user=Depends(get_verified_user),
 ):
     try:
         if app.state.config.ENABLE_RAG_HYBRID_SEARCH:
@@ -651,8 +651,8 @@ class QueryCollectionsForm(BaseModel):
 
 @app.post("/query/collection")
 def query_collection_handler(
-    form_data: QueryCollectionsForm,
-    user=Depends(get_verified_user),
+        form_data: QueryCollectionsForm,
+        user=Depends(get_verified_user),
 ):
     try:
         if app.state.config.ENABLE_RAG_HYBRID_SEARCH:
@@ -813,8 +813,8 @@ def search_web(engine: str, query: str) -> list[SearchResult]:
             raise Exception("No SEARXNG_QUERY_URL found in environment variables")
     elif engine == "google_pse":
         if (
-            app.state.config.GOOGLE_PSE_API_KEY
-            and app.state.config.GOOGLE_PSE_ENGINE_ID
+                app.state.config.GOOGLE_PSE_API_KEY
+                and app.state.config.GOOGLE_PSE_ENGINE_ID
         ):
             return search_google_pse(
                 app.state.config.GOOGLE_PSE_API_KEY,
@@ -931,7 +931,7 @@ def store_web_search(form_data: SearchForm, user=Depends(get_verified_user)):
 
 
 def store_data_in_vector_db(
-    data, collection_name, metadata: Optional[dict] = None, overwrite: bool = False
+        data, collection_name, metadata: Optional[dict] = None, overwrite: bool = False
 ) -> bool:
 
     text_splitter = RecursiveCharacterTextSplitter(
@@ -950,7 +950,7 @@ def store_data_in_vector_db(
 
 
 def store_text_in_vector_db(
-    text, metadata, collection_name, overwrite: bool = False
+        text, metadata, collection_name, overwrite: bool = False
 ) -> bool:
     text_splitter = RecursiveCharacterTextSplitter(
         chunk_size=app.state.config.CHUNK_SIZE,
@@ -962,7 +962,7 @@ def store_text_in_vector_db(
 
 
 def store_docs_in_vector_db(
-    docs, collection_name, metadata: Optional[dict] = None, overwrite: bool = False
+        docs, collection_name, metadata: Optional[dict] = None, overwrite: bool = False
 ) -> bool:
     log.info(f"store_docs_in_vector_db {docs} {collection_name}")
 
@@ -998,11 +998,11 @@ def store_docs_in_vector_db(
         embeddings = embedding_func(embedding_texts)
 
         for batch in create_batches(
-            api=CHROMA_CLIENT,
-            ids=[str(uuid.uuid4()) for _ in texts],
-            metadatas=metadatas,
-            embeddings=embeddings,
-            documents=texts,
+                api=CHROMA_CLIENT,
+                ids=[str(uuid.uuid4()) for _ in texts],
+                metadatas=metadatas,
+                embeddings=embeddings,
+                documents=texts,
         ):
             collection.add(*batch)
 
@@ -1109,11 +1109,11 @@ def get_loader(filename: str, file_content_type: str, file_path: str):
     ]
 
     if (
-        app.state.config.CONTENT_EXTRACTION_ENGINE == "tika"
-        and app.state.config.TIKA_SERVER_URL
+            app.state.config.CONTENT_EXTRACTION_ENGINE == "tika"
+            and app.state.config.TIKA_SERVER_URL
     ):
         if file_ext in known_source_ext or (
-            file_content_type and file_content_type.find("text/") >= 0
+                file_content_type and file_content_type.find("text/") >= 0
         ):
             loader = TextLoader(file_path, autodetect_encoding=True)
         else:
@@ -1136,9 +1136,9 @@ def get_loader(filename: str, file_content_type: str, file_path: str):
         elif file_content_type == "application/epub+zip":
             loader = UnstructuredEPubLoader(file_path)
         elif (
-            file_content_type
-            == "application/vnd.openxmlformats-officedocument.wordprocessingml.document"
-            or file_ext in ["doc", "docx"]
+                file_content_type
+                == "application/vnd.openxmlformats-officedocument.wordprocessingml.document"
+                or file_ext in ["doc", "docx"]
         ):
             loader = Docx2txtLoader(file_path)
         elif file_content_type in [
@@ -1154,7 +1154,7 @@ def get_loader(filename: str, file_content_type: str, file_path: str):
         elif file_ext == "msg":
             loader = OutlookMessageLoader(file_path)
         elif file_ext in known_source_ext or (
-            file_content_type and file_content_type.find("text/") >= 0
+                file_content_type and file_content_type.find("text/") >= 0
         ):
             loader = TextLoader(file_path, autodetect_encoding=True)
         else:
@@ -1166,9 +1166,9 @@ def get_loader(filename: str, file_content_type: str, file_path: str):
 
 @app.post("/doc")
 def store_doc(
-    collection_name: Optional[str] = Form(None),
-    file: UploadFile = File(...),
-    user=Depends(get_verified_user),
+        collection_name: Optional[str] = Form(None),
+        file: UploadFile = File(...),
+        user=Depends(get_verified_user),
 ):
     # "https://www.gutenberg.org/files/1727/1727-h/1727-h.htm"
 
@@ -1228,8 +1228,8 @@ class ProcessDocForm(BaseModel):
 
 @app.post("/process/doc")
 def process_doc(
-    form_data: ProcessDocForm,
-    user=Depends(get_verified_user),
+        form_data: ProcessDocForm,
+        user=Depends(get_verified_user),
 ):
     try:
         file = Files.get_file_by_id(form_data.file_id)
@@ -1291,8 +1291,8 @@ class TextRAGForm(BaseModel):
 
 @app.post("/text")
 def store_text(
-    form_data: TextRAGForm,
-    user=Depends(get_verified_user),
+        form_data: TextRAGForm,
+        user=Depends(get_verified_user),
 ):
 
     collection_name = form_data.collection_name

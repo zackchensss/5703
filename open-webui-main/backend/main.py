@@ -41,7 +41,7 @@ from apps.openai.main import (
 
 from apps.audio.main import app as audio_app
 from apps.images.main import app as images_app
-from apps.rag.main import app as rag_app
+# from apps.rag.main import app as rag_app
 from apps.webui.main import (
     app as webui_app,
     get_pipe_models,
@@ -584,15 +584,15 @@ async def chat_completion_files_handler(body):
         files = body["files"]
         del body["files"]
 
-        contexts, citations = get_rag_context(
-            files=files,
-            messages=body["messages"],
-            embedding_function=rag_app.state.EMBEDDING_FUNCTION,
-            k=rag_app.state.config.TOP_K,
-            reranking_function=rag_app.state.sentence_transformer_rf,
-            r=rag_app.state.config.RELEVANCE_THRESHOLD,
-            hybrid_search=rag_app.state.config.ENABLE_RAG_HYBRID_SEARCH,
-        )
+        # contexts, citations = get_rag_context(
+        #     files=files,
+        #     messages=body["messages"],
+        #     embedding_function=rag_app.state.EMBEDDING_FUNCTION,
+        #     k=rag_app.state.config.TOP_K,
+        #     reranking_function=rag_app.state.sentence_transformer_rf,
+        #     r=rag_app.state.config.RELEVANCE_THRESHOLD,
+        #     hybrid_search=rag_app.state.config.ENABLE_RAG_HYBRID_SEARCH,
+        # )
 
         log.debug(f"rag_contexts: {contexts}, citations: {citations}")
 
@@ -672,20 +672,20 @@ class ChatCompletionMiddleware(BaseHTTPMiddleware):
 
                 # Workaround for Ollama 2.0+ system prompt issue
                 # TODO: replace with add_or_update_system_message
-                if model["owned_by"] == "ollama":
-                    body["messages"] = prepend_to_first_user_message_content(
-                        rag_template(
-                            rag_app.state.config.RAG_TEMPLATE, context_string, prompt
-                        ),
-                        body["messages"],
-                    )
-                else:
-                    body["messages"] = add_or_update_system_message(
-                        rag_template(
-                            rag_app.state.config.RAG_TEMPLATE, context_string, prompt
-                        ),
-                        body["messages"],
-                    )
+                # if model["owned_by"] == "ollama":
+                    # body["messages"] = prepend_to_first_user_message_content(
+                    #     rag_template(
+                    #         rag_app.state.config.RAG_TEMPLATE, context_string, prompt
+                    #     ),
+                    #     body["messages"],
+                    # )
+                # else:
+                    # body["messages"] = add_or_update_system_message(
+                    #     rag_template(
+                    #         rag_app.state.config.RAG_TEMPLATE, context_string, prompt
+                    #     ),
+                    #     body["messages"],
+                    # )
 
             # If there are citations, add them to the data_items
             if len(citations) > 0:
@@ -901,8 +901,8 @@ async def check_url(request: Request, call_next):
 @app.middleware("http")
 async def update_embedding_function(request: Request, call_next):
     response = await call_next(request)
-    if "/embedding/update" in request.url.path:
-        webui_app.state.EMBEDDING_FUNCTION = rag_app.state.EMBEDDING_FUNCTION
+    # if "/embedding/update" in request.url.path:
+    #     webui_app.state.EMBEDDING_FUNCTION = rag_app.state.EMBEDDING_FUNCTION
     return response
 
 
@@ -913,12 +913,12 @@ app.mount("/openai", openai_app)
 
 app.mount("/images/api/v1", images_app)
 app.mount("/audio/api/v1", audio_app)
-app.mount("/rag/api/v1", rag_app)
+# app.mount("/rag/api/v1", rag_app)
 
 app.mount("/api/v1", webui_app)
 app.include_router(stripe_router, prefix="/api/stripe")
 
-webui_app.state.EMBEDDING_FUNCTION = rag_app.state.EMBEDDING_FUNCTION
+# webui_app.state.EMBEDDING_FUNCTION = rag_app.state.EMBEDDING_FUNCTION
 
 
 async def get_all_models():
@@ -1994,7 +1994,7 @@ async def get_app_config():
             "auth_trusted_header": bool(webui_app.state.AUTH_TRUSTED_EMAIL_HEADER),
             "enable_signup": webui_app.state.config.ENABLE_SIGNUP,
             "enable_login_form": webui_app.state.config.ENABLE_LOGIN_FORM,
-            "enable_web_search": rag_app.state.config.ENABLE_RAG_WEB_SEARCH,
+            # "enable_web_search": rag_app.state.config.ENABLE_RAG_WEB_SEARCH,
             "enable_image_generation": images_app.state.config.ENABLED,
             "enable_community_sharing": webui_app.state.config.ENABLE_COMMUNITY_SHARING,
             "enable_admin_export": ENABLE_ADMIN_EXPORT,

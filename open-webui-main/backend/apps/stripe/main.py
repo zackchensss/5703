@@ -44,6 +44,7 @@ async def stripe_webhook(request: Request):
 
 async def save_to_database():
     global customer_email, price, price_id, product, product_id, status
+    print
     try:
         user = Users.get_user_by_email(customer_email)
         if user:
@@ -62,7 +63,14 @@ async def save_to_database():
 
 @router.get("/subscribe")
 async def subscribe():
-    stripe_checkout_url = "https://buy.stripe.com/test_eVa5kpebudpT3Ic6op"
+    #mini
+    stripe_checkout_url = "https://buy.stripe.com/test_9AQfZ31oIbhL3Ic28a"
+
+    #pro
+    #stripe_checkout_url = "https://buy.stripe.com/test_5kA149c3m3PjceI3cc"
+
+    #ultra
+    #stripe_checkout_url = "https://buy.stripe.com/test_eVa5kpebudpT3Ic6op"
     return RedirectResponse(url=stripe_checkout_url)
 
 # cancel
