@@ -998,11 +998,11 @@ def store_docs_in_vector_db(
         embeddings = embedding_func(embedding_texts)
 
         for batch in create_batches(
-                api=CHROMA_CLIENT,
-                ids=[str(uuid.uuid4()) for _ in texts],
-                metadatas=metadatas,
-                embeddings=embeddings,
-                documents=texts,
+            api=CHROMA_CLIENT,
+            ids=[str(uuid.uuid4()) for _ in texts],
+            metadatas=metadatas,
+            embeddings=embeddings,
+            documents=texts,
         ):
             collection.add(*batch)
 
@@ -1109,11 +1109,11 @@ def get_loader(filename: str, file_content_type: str, file_path: str):
     ]
 
     if (
-            app.state.config.CONTENT_EXTRACTION_ENGINE == "tika"
-            and app.state.config.TIKA_SERVER_URL
+        app.state.config.CONTENT_EXTRACTION_ENGINE == "tika"
+        and app.state.config.TIKA_SERVER_URL
     ):
         if file_ext in known_source_ext or (
-                file_content_type and file_content_type.find("text/") >= 0
+            file_content_type and file_content_type.find("text/") >= 0
         ):
             loader = TextLoader(file_path, autodetect_encoding=True)
         else:
@@ -1136,9 +1136,9 @@ def get_loader(filename: str, file_content_type: str, file_path: str):
         elif file_content_type == "application/epub+zip":
             loader = UnstructuredEPubLoader(file_path)
         elif (
-                file_content_type
-                == "application/vnd.openxmlformats-officedocument.wordprocessingml.document"
-                or file_ext in ["doc", "docx"]
+            file_content_type
+            == "application/vnd.openxmlformats-officedocument.wordprocessingml.document"
+            or file_ext in ["doc", "docx"]
         ):
             loader = Docx2txtLoader(file_path)
         elif file_content_type in [
@@ -1154,7 +1154,7 @@ def get_loader(filename: str, file_content_type: str, file_path: str):
         elif file_ext == "msg":
             loader = OutlookMessageLoader(file_path)
         elif file_ext in known_source_ext or (
-                file_content_type and file_content_type.find("text/") >= 0
+            file_content_type and file_content_type.find("text/") >= 0
         ):
             loader = TextLoader(file_path, autodetect_encoding=True)
         else:
