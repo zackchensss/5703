@@ -243,14 +243,14 @@ def get_task_model_id(default_model_id):
     # Check if the user has a custom task model and use that model
     if app.state.MODELS[task_model_id]["owned_by"] == "ollama":
         if (
-                app.state.config.TASK_MODEL
-                and app.state.config.TASK_MODEL in app.state.MODELS
+            app.state.config.TASK_MODEL
+            and app.state.config.TASK_MODEL in app.state.MODELS
         ):
             task_model_id = app.state.config.TASK_MODEL
     else:
         if (
-                app.state.config.TASK_MODEL_EXTERNAL
-                and app.state.config.TASK_MODEL_EXTERNAL in app.state.MODELS
+            app.state.config.TASK_MODEL_EXTERNAL
+            and app.state.config.TASK_MODEL_EXTERNAL in app.state.MODELS
         ):
             task_model_id = app.state.config.TASK_MODEL_EXTERNAL
 
@@ -283,14 +283,14 @@ def get_filter_function_ids(model):
 
 
 async def get_function_call_response(
-        messages,
-        files,
-        tool_id,
-        template,
-        task_model_id,
-        user,
-        __event_emitter__=None,
-        __event_call__=None,
+    messages,
+    files,
+    tool_id,
+    template,
+    task_model_id,
+    user,
+    __event_emitter__=None,
+    __event_call__=None,
 ):
     tool = Tools.get_tool_by_id(tool_id)
     tools_specs = json.dumps(tool.specs, indent=2)
@@ -298,14 +298,14 @@ async def get_function_call_response(
 
     user_message = get_last_user_message(messages)
     prompt = (
-            "History:\n"
-            + "\n".join(
+        "History:\n"
+        + "\n".join(
         [
             f"{message['role'].upper()}: \"\"\"{message['content']}\"\"\""
             for message in messages[::-1][:4]
         ]
     )
-            + f"\nQuery: {user_message}"
+        + f"\nQuery: {user_message}"
     )
 
     print(prompt)
@@ -438,7 +438,7 @@ async def get_function_call_response(
 
 
 async def chat_completion_functions_handler(
-        body, model, user, __event_emitter__, __event_call__
+    body, model, user, __event_emitter__, __event_call__
 ):
     skip_files = None
 
@@ -605,8 +605,8 @@ async def chat_completion_files_handler(body):
 class ChatCompletionMiddleware(BaseHTTPMiddleware):
     async def dispatch(self, request: Request, call_next):
         if request.method == "POST" and any(
-                endpoint in request.url.path
-                for endpoint in ["/ollama/api/chat", "/chat/completions"]
+            endpoint in request.url.path
+            for endpoint in ["/ollama/api/chat", "/chat/completions"]
         ):
             log.debug(f"request.url.path: {request.url.path}")
 
@@ -758,15 +758,15 @@ def get_sorted_filters(model_id):
         model
         for model in app.state.MODELS.values()
         if "pipeline" in model
-           and "type" in model["pipeline"]
-           and model["pipeline"]["type"] == "filter"
-           and (
-                   model["pipeline"]["pipelines"] == ["*"]
-                   or any(
+        and "type" in model["pipeline"]
+        and model["pipeline"]["type"] == "filter"
+        and (
+                model["pipeline"]["pipelines"] == ["*"]
+                or any(
                model_id == target_model_id
                for target_model_id in model["pipeline"]["pipelines"]
            )
-           )
+        )
     ]
     sorted_filters = sorted(filters, key=lambda x: x["pipeline"]["priority"])
     return sorted_filters
@@ -818,8 +818,8 @@ def filter_pipeline(payload, user):
 class PipelineMiddleware(BaseHTTPMiddleware):
     async def dispatch(self, request: Request, call_next):
         if request.method == "POST" and (
-                "/ollama/api/chat" in request.url.path
-                or "/chat/completions" in request.url.path
+            "/ollama/api/chat" in request.url.path
+            or "/chat/completions" in request.url.path
         ):
             log.debug(f"request.url.path: {request.url.path}")
 
@@ -962,8 +962,8 @@ async def get_all_models():
         if custom_model.base_model_id is None:
             for model in models:
                 if (
-                        custom_model.id == model["id"]
-                        or custom_model.id == model["id"].split(":")[0]
+                    custom_model.id == model["id"]
+                    or custom_model.id == model["id"].split(":")[0]
                 ):
                     model["name"] = custom_model.name
                     model["info"] = custom_model.model_dump()
@@ -980,8 +980,8 @@ async def get_all_models():
 
             for model in models:
                 if (
-                        custom_model.base_model_id == model["id"]
-                        or custom_model.base_model_id == model["id"].split(":")[0]
+                    custom_model.base_model_id == model["id"]
+                    or custom_model.base_model_id == model["id"].split(":")[0]
                 ):
                     owned_by = model["owned_by"]
                     if "pipe" in model:
@@ -1680,7 +1680,7 @@ async def get_pipelines_list(user=Depends(get_admin_user)):
 
 @app.post("/api/pipelines/upload")
 async def upload_pipeline(
-        urlIdx: int = Form(...), file: UploadFile = File(...), user=Depends(get_admin_user)
+    urlIdx: int = Form(...), file: UploadFile = File(...), user=Depends(get_admin_user)
 ):
     print("upload_pipeline", urlIdx, file.filename)
     # Check if the uploaded file is a python file
@@ -1857,9 +1857,9 @@ async def get_pipelines(urlIdx: Optional[int] = None, user=Depends(get_admin_use
 
 @app.get("/api/pipelines/{pipeline_id}/valves")
 async def get_pipeline_valves(
-        urlIdx: Optional[int],
-        pipeline_id: str,
-        user=Depends(get_admin_user),
+    urlIdx: Optional[int],
+    pipeline_id: str,
+    user=Depends(get_admin_user),
 ):
     r = None
     try:
@@ -1895,9 +1895,9 @@ async def get_pipeline_valves(
 
 @app.get("/api/pipelines/{pipeline_id}/valves/spec")
 async def get_pipeline_valves_spec(
-        urlIdx: Optional[int],
-        pipeline_id: str,
-        user=Depends(get_admin_user),
+    urlIdx: Optional[int],
+    pipeline_id: str,
+    user=Depends(get_admin_user),
 ):
     r = None
     try:
@@ -1932,10 +1932,10 @@ async def get_pipeline_valves_spec(
 
 @app.post("/api/pipelines/{pipeline_id}/valves/update")
 async def update_pipeline_valves(
-        urlIdx: Optional[int],
-        pipeline_id: str,
-        form_data: dict,
-        user=Depends(get_admin_user),
+    urlIdx: Optional[int],
+    pipeline_id: str,
+    form_data: dict,
+    user=Depends(get_admin_user),
 ):
     r = None
     try:
@@ -2033,7 +2033,7 @@ class ModelFilterConfigForm(BaseModel):
 
 @app.post("/api/config/model/filter")
 async def update_model_filter_config(
-        form_data: ModelFilterConfigForm, user=Depends(get_admin_user)
+    form_data: ModelFilterConfigForm, user=Depends(get_admin_user)
 ):
     app.state.config.ENABLE_MODEL_FILTER = form_data.enabled
     app.state.config.MODEL_FILTER_LIST = form_data.models
@@ -2082,7 +2082,7 @@ async def get_app_latest_release_version():
     try:
         async with aiohttp.ClientSession(trust_env=True) as session:
             async with session.get(
-                    "https://api.github.com/repos/open-webui/open-webui/releases/latest"
+                "https://api.github.com/repos/open-webui/open-webui/releases/latest"
             ) as response:
                 response.raise_for_status()
                 data = await response.json()
