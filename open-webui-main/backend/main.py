@@ -300,10 +300,10 @@ async def get_function_call_response(
     prompt = (
         "History:\n"
         + "\n".join(
-        [
+            [
             f"{message['role'].upper()}: \"\"\"{message['content']}\"\"\""
             for message in messages[::-1][:4]
-        ]
+            ]
     )
         + f"\nQuery: {user_message}"
     )
@@ -761,11 +761,11 @@ def get_sorted_filters(model_id):
         and "type" in model["pipeline"]
         and model["pipeline"]["type"] == "filter"
         and (
-                model["pipeline"]["pipelines"] == ["*"]
-                or any(
-               model_id == target_model_id
-               for target_model_id in model["pipeline"]["pipelines"]
-           )
+            model["pipeline"]["pipelines"] == ["*"]
+            or any(
+            model_id == target_model_id
+            for target_model_id in model["pipeline"]["pipelines"]
+            )
         )
     ]
     sorted_filters = sorted(filters, key=lambda x: x["pipeline"]["priority"])
