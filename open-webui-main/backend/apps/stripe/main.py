@@ -7,10 +7,12 @@ from apps.webui.models.users import Users
 from flask import Flask, redirect, jsonify, request
 import logging
 
+
 stripe.api_key = 'sk_test_51PpnBARwKnsYpxFvqOIE6TwPUD4MPyHODJVOcnlsqrJbD8U82aN98ZUwu5NmtXAHuMyQKjPORI089WcNT9d4du6300KTgiURES'
 webhook_secret = 'whsec_45695097e5d997dbbb477f49b5f9224400d1b5764b9eb0acbd85e3a310a1a0be'
 
-router = APIRouter()
+##router = APIRouter()
+app = FastAPI()
 
 customer_email = None
 price = None
@@ -19,7 +21,9 @@ product = None
 product_id = None
 status = None
 log = logging.getLogger(__name__)
-@router.post("/api/webhook/stripe")
+
+
+@app.post('/stripe')
 async def stripe_webhook(request: Request):
     global customer_email, price, price_id, product, product_id, status
     log.warning("Received Stripe webhook")
@@ -121,7 +125,7 @@ async def save_to_database():
     except Exception as e:
         print(f"Wrong when saving the info: {e}")
 
-@router.get("/subscribe")
+@app.get("/subscribe")
 async def subscribe():
     log.warning("Received Stripe subscribe request")
     ### mini
@@ -133,7 +137,7 @@ async def subscribe():
     return RedirectResponse(url=stripe_checkout_url)
 
 # cancel
-@router.post("/cancel-subscription")
+@app.post("/cancel-subscription")
 async def cancel_subscription(request: Request):
     try:
         form_data = await request.json()
