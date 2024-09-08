@@ -18,11 +18,11 @@ price_id = None
 product = None
 product_id = None
 status = None
-
+log = logging.getLogger(__name__)
 @router.post("/api/webhook/stripe")
 async def stripe_webhook(request: Request):
     global customer_email, price, price_id, product, product_id, status
-
+    log.warning("Received Stripe webhook")
     payload = await request.body()
     sig_header = request.headers.get('Stripe-Signature')
 
@@ -37,7 +37,8 @@ async def stripe_webhook(request: Request):
 
     event_type = event['type']
     data = event['data']['object']
-
+    log.warning(f"Event type: {event_type}")
+    log.warning(f"Event data: {data}")
     customer_email = data.get('customer_email')
     if not customer_email:
         customer_id = data.get('customer')
@@ -73,6 +74,7 @@ async def stripe_webhook(request: Request):
     if event_type == 'checkout.session.completed':
         status = data['payment_status']
         await save_to_database()
+        logging.warning(f"checkout session completed")
         print("checkout.session.completed")
         # add more success logic
 
@@ -95,10 +97,12 @@ async def save_to_database():
     global customer_email, price, price_id, product, product_id, status
     print("save to database test")
     print(f"information: {customer_email},{price}.{product},{status}")
-    logging.info(f"information: {customer_email},{price}.{product},{status}")
+    logging.warning(f"information: {customer_email},{price}.{product},{status}")
+
     try:
         user = Users.get_user_by_email(customer_email)
         if user:
+            logging.warning(f"User found: {user.id}, {user.email}")
             user.subscription_status = status
 
             if product == "open webui ultra":
@@ -112,12 +116,14 @@ async def save_to_database():
                 "subscription_status": user.subscription_status,
                 "subscription_expiration": user.subscription_expiration,
             })
+        else:
+            logging.warning(f"No user found with email: {customer_email}")
     except Exception as e:
         print(f"Wrong when saving the info: {e}")
 
 @router.get("/subscribe")
 async def subscribe():
-
+    log.warning("Received Stripe subscribe request")
     ### mini
     stripe_checkout_url = "https://buy.stripe.com/test_9AQfZ31oIbhL3Ic28a"
     ### pro
