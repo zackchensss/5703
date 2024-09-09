@@ -98,32 +98,33 @@ async def stripe_webhook(request: Request):
     return {"status": "success"}, 200
 
 async def save_to_database():
-    global customer_email, price, price_id, product, product_id, status
-    print("save to database test")
-    print(f"information: {customer_email},{price}.{product},{status}")
-    logging.warning(f"information: {customer_email},{price}.{product},{status}")
+    global customer_email, price, product, status
+    print(f"Saving to database: {customer_email}, {price}, {product}, {status}")
 
     try:
         user = Users.get_user_by_email(customer_email)
         if user:
-            logging.warning(f"User found: {user.id}, {user.email}")
-            user.subscription_status = status
-
+            expiration = 0
             if product == "open webui ultra":
-                user.subscription_expiration = int(time.time()) + 365 * 24 * 60 * 60  # yearly
+                expiration = int(time.time()) + 365 * 24 * 60 * 60  # yearly
             elif product == "open webui pro":
-                user.subscription_expiration = int(time.time()) + 30 * 24 * 60 * 60  # monthly
+                expiration = int(time.time()) + 30 * 24 * 60 * 60  # monthly
             elif product == "open webui mini":
-                user.subscription_expiration = int(time.time()) + 7 * 24 * 60 * 60
+                expiration = int(time.time()) + 7 * 24 * 60 * 60  # weekly
 
-            await Users.update_user_by_id(user.id, {
-                "subscription_status": user.subscription_status,
-                "subscription_expiration": user.subscription_expiration,
+            updated_user = Users.update_user_by_id(user.id, {
+                "subscription_status": status,
+                "subscription_expiration": expiration,
             })
+
+            if updated_user:
+                print(f"Successfully updated subscription for user: {updated_user.email}")
+            else:
+                print(f"Failed to update subscription for user: {user.email}")
         else:
-            logging.warning(f"No user found with email: {customer_email}")
+            print(f"No user found with email: {customer_email}")
     except Exception as e:
-        print(f"Wrong when saving the info: {e}")
+        print(f"Error when saving the subscription info: {e}")
 
 @app.get("/subscribe")
 async def subscribe():

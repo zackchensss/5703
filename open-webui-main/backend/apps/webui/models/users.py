@@ -32,7 +32,8 @@ class User(Base):
     info = Column(JSONField, nullable=True)
 
     oauth_sub = Column(Text, unique=True)
-
+    subscription_status = Column(String, nullable=True)
+    subscription_expiration = Column(BigInteger, nullable=True)
 
 class UserSettings(BaseModel):
     ui: Optional[dict] = {}
@@ -56,7 +57,8 @@ class UserModel(BaseModel):
     info: Optional[dict] = None
 
     oauth_sub: Optional[str] = None
-
+    subscription_status: Optional[str] = None
+    subscription_expiration: Optional[int] = None
     model_config = ConfigDict(from_attributes=True)
 
 
