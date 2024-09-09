@@ -50,7 +50,7 @@ async def stripe_webhook(request: Request):
             customer = stripe.Customer.retrieve(customer_id)
             customer_email = customer.email
 
-    if event_type in ['customer.subscription.created', 'customer.subscription.updated']:
+    if event_type == 'customer.subscription.created' or event_type == 'customer.subscription.updated':
         if 'items' in data:
             price_id = data['items']['data'][0]['price']['id']
             product_id = data['items']['data'][0]['price']['product']
@@ -126,15 +126,20 @@ async def save_to_database():
     except Exception as e:
         print(f"Error when saving the subscription info: {e}")
 
-@app.get("/subscribe")
+@app.get("/subscribe/mini")
 async def subscribe():
     log.warning("Received Stripe subscribe request")
-    ### mini
     stripe_checkout_url = "https://buy.stripe.com/test_9AQfZ31oIbhL3Ic28a"
-    ### pro
-    # stripe_checkout_url = "https://buy.stripe.com/test_5kA149c3m3PjceI3cc"
-    ### ultra
-    # stripe_checkout_url = "https://buy.stripe.com/test_eVa5kpebudpT3Ic6op"
+    return RedirectResponse(url=stripe_checkout_url)
+@app.get("/subscribe/pro")
+async def subscribe():
+    log.warning("Received Stripe subscribe request")
+    stripe_checkout_url = "https://buy.stripe.com/test_5kA149c3m3PjceI3cc"
+    return RedirectResponse(url=stripe_checkout_url)
+@app.get("/subscribe/ultra")
+async def subscribe():
+    log.warning("Received Stripe subscribe request")
+    stripe_checkout_url = "https://buy.stripe.com/test_eVa5kpebudpT3Ic6op"
     return RedirectResponse(url=stripe_checkout_url)
 
 # cancel

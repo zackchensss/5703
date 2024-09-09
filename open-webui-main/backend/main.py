@@ -1087,6 +1087,12 @@ async def get_models(user=Depends(get_verified_user)):
 
 @app.post("/api/chat/completions")
 async def generate_chat_completions(form_data: dict, user=Depends(get_verified_user)):
+    print(f"User: {user.id}, Subscription status: {user.subscription_status}")
+    if user.subscription_status != "paid":
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="You need to have an active subscription to use this feature. Please subscribe to continue."
+        )
     model_id = form_data["model"]
     if model_id not in app.state.MODELS:
         raise HTTPException(
@@ -2222,6 +2228,7 @@ async def oauth_callback(provider: str, request: Request, response: Response):
                 profile_image_url=picture_url,
                 role=role,
                 oauth_sub=provider_sub,
+                subscription_status="unpaid",
             )
 
             if webui_app.state.config.WEBHOOK_URL:
