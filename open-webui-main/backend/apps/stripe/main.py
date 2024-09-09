@@ -41,8 +41,7 @@ async def stripe_webhook(request: Request):
 
     event_type = event['type']
     data = event['data']['object']
-    log.warning(f"Event type: {event_type}")
-    log.warning(f"Event data: {data}")
+
     customer_email = data.get('customer_email')
     if not customer_email:
         customer_id = data.get('customer')
@@ -50,7 +49,7 @@ async def stripe_webhook(request: Request):
             customer = stripe.Customer.retrieve(customer_id)
             customer_email = customer.email
 
-    if event_type == 'customer.subscription.created' or event_type == 'customer.subscription.updated':
+    if event_type == 'customer.subscription.created' or event_type == 'customer.subscription.updated' or event_type == 'billing_portal.session.created':
         if 'items' in data:
             price_id = data['items']['data'][0]['price']['id']
             product_id = data['items']['data'][0]['price']['product']
@@ -75,11 +74,19 @@ async def stripe_webhook(request: Request):
         else:
             print("No items found in the subscription data.")
 
+    elif event_type == 'customer.subscription.deleted':
+        price = None
+        price_id = None
+        product = None
+        product_id = None
+
+        print(f"Subscription {data['id']} deleted")
+        # add delete logic
+
     if event_type == 'checkout.session.completed':
         status = data['payment_status']
+        log.warning(f"checkout.session.completed information: {price_id},{price},{product_id},{product}")
         await save_to_database()
-        logging.warning(f"checkout session completed")
-        print("checkout.session.completed")
         # add more success logic
 
     elif event_type == 'customer.subscription.deleted':
@@ -126,6 +133,7 @@ async def save_to_database():
     except Exception as e:
         print(f"Error when saving the subscription info: {e}")
 
+
 @app.get("/subscribe/mini")
 async def subscribe():
     log.warning("Received Stripe subscribe request")
@@ -141,6 +149,15 @@ async def subscribe():
     log.warning("Received Stripe subscribe request")
     stripe_checkout_url = "https://buy.stripe.com/test_eVa5kpebudpT3Ic6op"
     return RedirectResponse(url=stripe_checkout_url)
+
+# customer portal page
+@app.get("/portal")
+async def portal():
+    log.warning("Test customer portal page")
+    # customer_portal_url = "https://billing.stripe.com/p/login/test_bIYdRy2q67c65LWdQQ"
+    # test with user email
+    customer_portal_url = "https://billing.stripe.com/p/login/test_bIYdRy2q67c65LWdQQ?prefilled_email=zehaozhang.zzh@gmail.com"
+    return RedirectResponse(url=customer_portal_url)
 
 # cancel
 @app.post("/cancel-subscription")
