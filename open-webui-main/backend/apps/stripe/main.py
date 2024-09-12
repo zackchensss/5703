@@ -6,7 +6,7 @@ from fastapi.responses import RedirectResponse
 from apps.webui.models.users import Users
 from flask import Flask, redirect, jsonify, request
 import logging
-
+from datetime import datetime, timedelta
 
 stripe.api_key = 'sk_test_51PpnBARwKnsYpxFvqOIE6TwPUD4MPyHODJVOcnlsqrJbD8U82aN98ZUwu5NmtXAHuMyQKjPORI089WcNT9d4du6300KTgiURES'
 webhook_secret = 'whsec_45695097e5d997dbbb477f49b5f9224400d1b5764b9eb0acbd85e3a310a1a0be'
@@ -49,6 +49,10 @@ async def stripe_webhook(request: Request):
             customer = stripe.Customer.retrieve(customer_id)
             customer_email = customer.email
 
+    #判断订阅是否需要更新，是否需要向数据库传输数据
+    update = False
+    orvip = None
+
     if event_type == 'customer.subscription.created' or event_type == 'customer.subscription.updated' or event_type == 'billing_portal.session.created':
         if 'items' in data:
             price_id = data['items']['data'][0]['price']['id']
@@ -71,6 +75,8 @@ async def stripe_webhook(request: Request):
                 product = "open webui mini"
             else:
                 product = "error"
+            orvip = True
+            update = True
         else:
             print("No items found in the subscription data.")
 
@@ -79,14 +85,16 @@ async def stripe_webhook(request: Request):
         price_id = None
         product = None
         product_id = None
-
+        orvip = False
+        update = True
         print(f"Subscription {data['id']} deleted")
         # add delete logic
 
-    if event_type == 'checkout.session.completed':
+    elif event_type == 'checkout.session.completed':
         status = data['payment_status']
         log.warning(f"checkout.session.completed information: {price_id},{price},{product_id},{product}")
-        await save_to_database()
+        if update:
+            await save_to_database(orvip)
         # add more success logic
 
     elif event_type == 'customer.subscription.deleted':
@@ -104,32 +112,70 @@ async def stripe_webhook(request: Request):
 
     return {"status": "success"}, 200
 
-async def save_to_database():
+async def save_to_database(orvip):
     global customer_email, price, product, status
-    print(f"Saving to database: {customer_email}, {price}, {product}, {status}")
+
+    #不记录持续时间改为记录订阅开始时间和结束时间
+    ##由于创建，更新，删除皆为立即操作所以start_time获取今天日期即可
+    start_time = datetime.now().date()
+    end_time = datetime.now().date()
 
     try:
         user = Users.get_user_by_email(customer_email)
+
+        #如果user在数据库中存在，只会发生更新或者删除订阅
         if user:
-            expiration = 0
+            #如果orvip为true则表示更新订阅
+            if orvip:
+                if product == "open webui ultra":
+                    end_time = start_time + timedelta(days=365)
+                elif product == "open webui pro":
+                    end_time = start_time + timedelta(days=30)
+                elif product == "open webui mini":
+                    end_time = start_time + timedelta(days=7)
+
+                updated_user = Users.update_user_by_id(user.id, {
+                    "subscription_status": status,
+                    "subscription_start_time": start_time,
+                    "subscription_end_time":end_time,
+                    "subscription_product":product,
+                    "orvip": orvip,
+                })
+
+                if updated_user:
+                    print(f"Successfully updated subscription for user: {updated_user.email}")
+                else:
+                    print(f"Failed to update subscription for user: {user.email}")
+
+            #如果orvip为false则表示删除用户的订阅状态
+            else:
+                updated_user = Users.update_user_by_id(user.id, {
+                    "subscription_status": status,
+                    "subscription_end_time": end_time,
+                    "orvip": orvip,
+                })
+                if updated_user:
+                    print(f"Successfully updated subscription for user: {updated_user.email}")
+                else:
+                    print(f"Failed to update subscription for user: {user.email}")
+
+        #如果用户在数据库中不存在，只会发生添加订阅操作
+        else:
             if product == "open webui ultra":
-                expiration = int(time.time()) + 365 * 24 * 60 * 60  # yearly
+                end_time = start_time + timedelta(days=365)
             elif product == "open webui pro":
-                expiration = int(time.time()) + 30 * 24 * 60 * 60  # monthly
+                end_time = start_time + timedelta(days=30)
             elif product == "open webui mini":
-                expiration = int(time.time()) + 7 * 24 * 60 * 60  # weekly
+                end_time = start_time + timedelta(days=7)
 
-            updated_user = Users.update_user_by_id(user.id, {
-                "subscription_status": status,
-                "subscription_expiration": expiration,
-            })
+            #这个添加新用户不知道写的对不对
+            new_user = Users.add_user(customer_email, status, start_time, end_time, product, orvip)
 
-            if updated_user:
-                print(f"Successfully updated subscription for user: {updated_user.email}")
+            if new_user:
+                print(f"Successfully updated subscription for user: {new_user.email}")
             else:
                 print(f"Failed to update subscription for user: {user.email}")
-        else:
-            print(f"No user found with email: {customer_email}")
+
     except Exception as e:
         print(f"Error when saving the subscription info: {e}")
 
@@ -156,7 +202,7 @@ async def portal():
     log.warning("Test customer portal page")
     # customer_portal_url = "https://billing.stripe.com/p/login/test_bIYdRy2q67c65LWdQQ"
     # test with user email
-    customer_portal_url = "https://billing.stripe.com/p/login/test_bIYdRy2q67c65LWdQQ?prefilled_email=zehaozhang.zzh@gmail.com"
+    customer_portal_url = "https://billing.stripe.com/p/login/test_bIYdRy2q67c65LWdQQ?prefilled_email=1038959680@qq.com"
     return RedirectResponse(url=customer_portal_url)
 
 # cancel
