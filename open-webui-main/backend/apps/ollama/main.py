@@ -139,7 +139,7 @@ async def fetch_url(url):
                 return await response.json()
     except Exception as e:
         # Handle connection error here
-        log.error(f"Connection error: {e}")
+        # log.error(f"Connection error: {e}")
         return None
 
 
@@ -209,7 +209,7 @@ def merge_models_lists(model_lists):
 
 
 async def get_all_models():
-    log.info("get_all_models()")
+    # log.info("get_all_models()")
 
     if app.state.config.ENABLE_OLLAMA_API:
         tasks = [

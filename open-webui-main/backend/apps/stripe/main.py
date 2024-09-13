@@ -11,7 +11,6 @@ from datetime import datetime, timedelta
 stripe.api_key = 'sk_test_51PpnBARwKnsYpxFvqOIE6TwPUD4MPyHODJVOcnlsqrJbD8U82aN98ZUwu5NmtXAHuMyQKjPORI089WcNT9d4du6300KTgiURES'
 webhook_secret = 'whsec_45695097e5d997dbbb477f49b5f9224400d1b5764b9eb0acbd85e3a310a1a0be'
 
-##router = APIRouter()
 app = FastAPI()
 
 customer_email = None
@@ -20,13 +19,16 @@ price_id = None
 product = None
 product_id = None
 status = None
+orvip = None
+processing_subscription_update = False
+
 log = logging.getLogger(__name__)
 
 
 @app.post('/stripe')
 async def stripe_webhook(request: Request):
-    global customer_email, price, price_id, product, product_id, status
-    log.warning("Received Stripe webhook")
+    global customer_email, price, price_id, product, product_id, status, orvip , processing_subscription_update
+    # log.warning("Received Stripe webhook")
     payload = await request.body()
     sig_header = request.headers.get('Stripe-Signature')
 
@@ -49,11 +51,7 @@ async def stripe_webhook(request: Request):
             customer = stripe.Customer.retrieve(customer_id)
             customer_email = customer.email
 
-    #判断订阅是否需要更新，是否需要向数据库传输数据
-    update = False
-    orvip = None
-
-    if event_type == 'customer.subscription.created' or event_type == 'customer.subscription.updated' or event_type == 'billing_portal.session.created':
+    if event_type == 'customer.subscription.created' or event_type == 'customer.subscription.updated':
         if 'items' in data:
             price_id = data['items']['data'][0]['price']['id']
             product_id = data['items']['data'][0]['price']['product']
@@ -75,10 +73,18 @@ async def stripe_webhook(request: Request):
                 product = "open webui mini"
             else:
                 product = "error"
-            orvip = True
-            update = True
+
         else:
             print("No items found in the subscription data.")
+
+        orvip = True
+        print(f"new information: {price_id},{price},{product_id},{product},{orvip}")
+        await save_to_database()
+
+        if not processing_subscription_update:
+            subscription_id = data.get('id')
+            stripe.Subscription.modify(subscription_id, cancel_at_period_end=True)
+            processing_subscription_update = True
 
     elif event_type == 'customer.subscription.deleted':
         price = None
@@ -86,15 +92,15 @@ async def stripe_webhook(request: Request):
         product = None
         product_id = None
         orvip = False
-        update = True
-        print(f"Subscription {data['id']} deleted")
+
+        print(f"Subscription {data['id']} deleted. information: {price_id},{price},{product_id},{product}")
+        await save_to_database()
         # add delete logic
 
     elif event_type == 'checkout.session.completed':
         status = data['payment_status']
-        log.warning(f"checkout.session.completed information: {price_id},{price},{product_id},{product}")
-        if update:
-            await save_to_database(orvip)
+        print(f"checkout.session.completed, {status}")
+        print(f"new information: {price_id},{price},{product_id},{product}")
         # add more success logic
 
     elif event_type == 'customer.subscription.deleted':
@@ -107,19 +113,20 @@ async def stripe_webhook(request: Request):
     elif event_type == 'payment_method.attached':
         print("payment_method.attached")
 
-    else:
-        print(f"Unhandled event type: {event_type}")
+    # else:
+    #     print(f"Unhandled event type: {event_type}")
 
     return {"status": "success"}, 200
 
-async def save_to_database(orvip):
-    global customer_email, price, product, status
+
+async def save_to_database():
+    global customer_email, price, product, status, orvip
 
     #不记录持续时间改为记录订阅开始时间和结束时间
     ##由于创建，更新，删除皆为立即操作所以start_time获取今天日期即可
     start_time = datetime.now().date()
     end_time = datetime.now().date()
-
+    print(f"data information: {customer_email},{start_time},{end_time},{orvip}")
     try:
         user = Users.get_user_by_email(customer_email)
 
@@ -146,7 +153,7 @@ async def save_to_database(orvip):
                     print(f"Successfully updated subscription for user: {updated_user.email}")
                 else:
                     print(f"Failed to update subscription for user: {user.email}")
-
+                print(f"data time: {start_time},{end_time}")
             #如果orvip为false则表示删除用户的订阅状态
             else:
                 updated_user = Users.update_user_by_id(user.id, {
@@ -158,24 +165,25 @@ async def save_to_database(orvip):
                     print(f"Successfully updated subscription for user: {updated_user.email}")
                 else:
                     print(f"Failed to update subscription for user: {user.email}")
-
+                print(f"data time: {start_time},{end_time}")
         #如果用户在数据库中不存在，只会发生添加订阅操作
         else:
-            if product == "open webui ultra":
-                end_time = start_time + timedelta(days=365)
-            elif product == "open webui pro":
-                end_time = start_time + timedelta(days=30)
-            elif product == "open webui mini":
-                end_time = start_time + timedelta(days=7)
-
-            #这个添加新用户不知道写的对不对
-            new_user = Users.add_user(customer_email, status, start_time, end_time, product, orvip)
-
-            if new_user:
-                print(f"Successfully updated subscription for user: {new_user.email}")
-            else:
-                print(f"Failed to update subscription for user: {user.email}")
-
+            # if product == "open webui ultra":
+            #     end_time = start_time + timedelta(days=365)
+            # elif product == "open webui pro":
+            #     end_time = start_time + timedelta(days=30)
+            # elif product == "open webui mini":
+            #     end_time = start_time + timedelta(days=7)
+            #
+            # #这个添加新用户不知道写的对不对
+            # new_user = Users.add_user(customer_email, status, start_time, end_time, product, orvip)
+            #
+            # if new_user:
+            #     print(f"Successfully updated subscription for user: {new_user.email}")
+            # else:
+            #     print(f"Failed to update subscription for user: {user.email}")
+            print("No user in database")
+        print(f"database information:{orvip},{user.email},{product},{start_time},{end_time}")
     except Exception as e:
         print(f"Error when saving the subscription info: {e}")
 
