@@ -1,6 +1,7 @@
 import base64
 import uuid
 from contextlib import asynccontextmanager
+from datetime import datetime
 
 from authlib.integrations.starlette_client import OAuth
 from authlib.oidc.core import UserInfo
@@ -913,7 +914,7 @@ app.mount("/openai", openai_app)
 
 app.mount("/images/api/v1", images_app)
 app.mount("/audio/api/v1", audio_app)
-# app.mount("/rag/api/v1", rag_app)
+##app.mount("/rag/api/v1", rag_app)
 
 app.mount("/api/v1", webui_app)
 app.mount("/api/webhook",stripe_app)
@@ -2261,6 +2262,19 @@ async def oauth_callback(provider: str, request: Request, response: Response):
             raise HTTPException(
                 status.HTTP_403_FORBIDDEN, detail=ERROR_MESSAGES.ACCESS_PROHIBITED
             )
+    # if user.subscription_expiration is not None:
+    #     current_time = int(datetime.now().timestamp())
+    #     if user.subscription_expiration < current_time:
+    #         # 如果订阅已过期，更新 orvip 为 0
+    #         Users.update_user_by_id(user.id, {
+    #             "orvip": 0,
+    #             "subscription_status": "expired"
+    #         })
+    #         log.warning(f"User {user.id}'s subscription has expired. Updated orvip to 0.")
+    #     else:
+    #         log.warning(f"User {user.id}'s subscription has not expired.")
+    # else:
+    #     log.warning(f"User {user.id}'s No users.")
 
     jwt_token = create_token(
         data={"id": user.id},

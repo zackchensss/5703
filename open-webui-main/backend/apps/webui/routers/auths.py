@@ -1,5 +1,5 @@
 import logging
-
+from datetime import datetime
 from fastapi import Request, UploadFile, File
 from fastapi import Depends, HTTPException, status
 from fastapi.responses import Response
@@ -38,7 +38,6 @@ from config import (
     WEBUI_AUTH_TRUSTED_EMAIL_HEADER,
     WEBUI_AUTH_TRUSTED_NAME_HEADER,
 )
-
 router = APIRouter()
 
 ############################
@@ -163,6 +162,19 @@ async def signin(request: Request, response: Response, form_data: SigninForm):
         user = Auths.authenticate_user(form_data.email.lower(), form_data.password)
 
     if user:
+        if user.subscription_expiration is not None:
+            current_time = int(datetime.now().timestamp())
+            if user.subscription_expiration < current_time:
+                # 如果订阅已过期，更新 orvip 为 0
+                Users.update_user_by_id(user.id, {
+                    "orvip": 0,
+                    "subscription_status": "expired"
+                })
+                print(f"User {user.id}'s subscription has expired. Updated orvip to 0.")
+            else:
+                print(f"User {user.id}'s subscription has not expired.")
+        else:
+            print(f"User {user.id}'s No users.")
         token = create_token(
             data={"id": user.id},
             expires_delta=parse_duration(request.app.state.config.JWT_EXPIRES_IN),
