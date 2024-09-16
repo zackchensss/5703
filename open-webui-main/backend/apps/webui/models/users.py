@@ -2,7 +2,7 @@ from pydantic import BaseModel, ConfigDict, parse_obj_as
 from typing import List, Union, Optional
 import time
 
-from sqlalchemy import String, Column, BigInteger, Text
+from sqlalchemy import String, Column, BigInteger, Text,Boolean
 
 from utils.misc import get_gravatar_url
 
@@ -34,6 +34,10 @@ class User(Base):
     oauth_sub = Column(Text, unique=True)
     subscription_status = Column(String, nullable=True)
     subscription_expiration = Column(BigInteger, nullable=True)
+    subscription_start_time = Column(BigInteger, nullable=True)  # 添加订阅开始时间字段
+    subscription_product = Column(String, nullable=True)  # 添加订阅产品字段
+    orvip = Column(Boolean, default=False)  # 表示是否为VIP
+
 
 class UserSettings(BaseModel):
     ui: Optional[dict] = {}
@@ -59,6 +63,9 @@ class UserModel(BaseModel):
     oauth_sub: Optional[str] = None
     subscription_status: Optional[str] = None
     subscription_expiration: Optional[int] = None
+    subscription_start_time: Optional[int] = None
+    subscription_product: Optional[str] = None  # 添加订阅产品字段
+    orvip: Optional[bool] = False  # 是否为VIP订阅，默认False
     model_config = ConfigDict(from_attributes=True)
 
 

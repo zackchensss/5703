@@ -147,7 +147,7 @@ async def save_to_database():
                 updated_user = Users.update_user_by_id(user.id, {
                     "subscription_status": status,
                     "subscription_start_time": int_start_time,
-                    "subscription_end_time":int_end_time,
+                    "subscription_expiration":int_end_time,
                     "subscription_product":product,
                     "orvip": orvip,
                 })
