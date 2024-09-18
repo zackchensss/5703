@@ -165,7 +165,6 @@ async def signin(request: Request, response: Response, form_data: SigninForm):
         if user.subscription_expiration is not None:
             current_time = int(datetime.now().timestamp())
             if user.subscription_expiration < current_time:
-                # 如果订阅已过期，更新 orvip 为 0
                 Users.update_user_by_id(user.id, {
                     "orvip": 0,
                     "subscription_status": "expired"

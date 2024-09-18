@@ -1086,24 +1086,33 @@ async def get_models(user=Depends(get_verified_user)):
     return {"data": models}
 
 
-async def check_subscription_status(user=Depends(get_verified_user)):
-    print(f"Checking subscription for User: {user['id']}, Subscription status: {user['subscription_status']}")
-    if user['subscription_status'] != "paid":
-        raise HTTPException(
-            status_code=status.HTTP_403_FORBIDDEN,
-            detail="You need to have an active subscription to use this feature."
-        )
-    return {"message": "Subscription active", "subscription_status": user["subscription_status"]}
+# async def check_subscription_status(user=Depends(get_verified_user)):
+#     print(f"Checking subscription for User: {user['id']}, Subscription status: {user['subscription_status']}")
+#     if user['subscription_status'] != "paid":
+#         raise HTTPException(
+#             status_code=status.HTTP_403_FORBIDDEN,
+#             detail="You need to have an active subscription to use this feature."
+#         )
+#     return {"message": "Subscription active", "subscription_status": user["subscription_status"]}
+
+
+# @app.get("/api/subscription/status")
+# async def subscription_status(user=Depends(get_verified_user)):
+#     return await check_subscription_status(user)
 
 
 @app.get("/api/subscription/status")
-async def subscription_status(user=Depends(get_verified_user)):
-    return await check_subscription_status(user)
-
-
+async def get_subscription_status(user=Depends(get_verified_user)):
+    if user.subscription_status is None:
+        raise HTTPException(status_code=404, detail="User subscription not found")
+    return {
+        "subscription_start_time": user.subscription_start_time,
+        "subscription_expiration": user.subscription_expiration,
+        "orvip": user.orvip
+    }
 @app.post("/api/chat/completions")
 async def generate_chat_completions(form_data: dict, user=Depends(get_verified_user)):
-    await check_subscription_status(user)
+    # await check_subscription_status(user)
     print(f"User: {user.id}, Subscription status: {user.subscription_status}")
     if user.subscription_status != "paid":
         raise HTTPException(
@@ -1443,7 +1452,6 @@ class TaskConfigForm(BaseModel):
     SEARCH_QUERY_GENERATION_PROMPT_TEMPLATE: str
     SEARCH_QUERY_PROMPT_LENGTH_THRESHOLD: int
     TOOLS_FUNCTION_CALLING_PROMPT_TEMPLATE: str
-
 
 @app.post("/api/task/config/update")
 async def update_task_config(form_data: TaskConfigForm, user=Depends(get_admin_user)):
