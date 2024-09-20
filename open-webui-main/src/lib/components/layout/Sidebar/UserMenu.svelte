@@ -5,7 +5,7 @@
 	import { flyAndScale } from '$lib/utils/transitions';
 	import { goto } from '$app/navigation';
 	import ArchiveBox from '$lib/components/icons/ArchiveBox.svelte';
-	import { showSettings, activeUserCount, USAGE_POOL } from '$lib/stores';
+	import { showSettings, activeUserCount, USAGE_POOL, showSubscription } from '$lib/stores';
 	import { fade, slide } from 'svelte/transition';
 	import Tooltip from '$lib/components/common/Tooltip.svelte';
 
@@ -36,6 +36,32 @@
 			align="start"
 			transition={(e) => fade(e, { duration: 100 })}
 		>
+			<button
+				class="flex rounded-md py-2 px-3 w-full hover:bg-gray-50 dark:hover:bg-gray-800 transition"
+				on:click={async () => {
+					await showSubscription.set(true);
+					show = false;
+				}}
+			>
+				<div class=" self-center mr-3">
+					<svg
+					xmlns="http://www.w3.org/2000/svg"
+					fill="none"
+					viewBox="0 0 24 24"
+					stroke-width="1.5"
+					stroke="currentColor"
+					class="w-5 h-5"
+				>
+					<path
+						stroke-linecap="round"
+						stroke-linejoin="round"
+						d="M12 2.25c-.69 0-1.25.56-1.25 1.25v7.25H5.5c-.69 0-1.25.56-1.25 1.25s.56 1.25 1.25 1.25H10.75V20.5c0 .69.56 1.25 1.25 1.25s1.25-.56 1.25-1.25v-7.25H18.5c.69 0 1.25-.56 1.25-1.25s-.56-1.25-1.25-1.25H13.25V3.5c0-.69-.56-1.25-1.25-1.25z"
+					/>
+					</svg>
+				</div>
+				<div class=" self-center font-medium">{$i18n.t('Subscriptions')}</div>
+			</button>
+
 			<button
 				class="flex rounded-md py-2 px-3 w-full hover:bg-gray-50 dark:hover:bg-gray-800 transition"
 				on:click={async () => {

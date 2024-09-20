@@ -306,6 +306,37 @@
 			dropZone?.removeEventListener('dragleave', onDragLeave);
 		};
 	});
+
+		import { checkSubscriptionStatus } from '../../stores/subscriptionStore.js';
+
+		let subscriptionStatus = "";
+		let message = "";
+
+		// Check subscription status when the component is mounted
+		onMount(async () => {
+		try {
+			const data = await checkSubscriptionStatus();
+			if (data && data.subscription_status) {
+			subscriptionStatus = data.subscription_status;
+			message = data.message;
+			}
+		} catch (error) {
+			//message = error.message;
+		}
+		});
+
+		function showSubscriptionPopup() {
+		alert("You need to subscribe to access this feature!");
+		}
+
+		function submitForm() {
+		if (subscriptionStatus !== "paid") {
+			showSubscriptionPopup();
+		} else {
+			// If the user is subscribed, submit the prompt
+			submitPrompt(prompt);
+		}
+		}
 </script>
 
 <FilesOverlay show={dragged} />
@@ -484,10 +515,7 @@
 				{:else}
 					<form
 						class="w-full flex gap-1.5"
-						on:submit|preventDefault={() => {
-							// check if selectedModels support image input
-							submitPrompt(prompt);
-						}}
+						on:submit|preventDefault={submitForm}
 					>
 						<div
 							class="flex-1 flex flex-col relative w-full rounded-3xl px-1.5 bg-gray-50 dark:bg-gray-850 dark:text-gray-100"

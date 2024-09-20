@@ -20,6 +20,7 @@
 	import {
 		user,
 		showSettings,
+		showSubscription,
 		settings,
 		models,
 		prompts,
@@ -38,6 +39,7 @@
 	import ChangelogModal from '$lib/components/ChangelogModal.svelte';
 	import AccountPending from '$lib/components/layout/Overlay/AccountPending.svelte';
 	import { getFunctions } from '$lib/apis/functions';
+	import SubscriptionModal from '$lib/components/chat/SubscriptionModal.svelte';
 
 	const i18n = getContext('i18n');
 
@@ -184,6 +186,7 @@
 
 <SettingsModal bind:show={$showSettings} />
 <ChangelogModal bind:show={$showChangelog} />
+<SubscriptionModal bind:show={$showSubscription} />
 
 <div class="app relative">
 	<div
