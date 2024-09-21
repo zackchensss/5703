@@ -26,7 +26,7 @@
     let subscriptionHistory: Subscription[] = [];
     function formatTimestamp(timestamp) {
         const date = new Date(timestamp * 1000);
-        return date.toLocaleString();
+        return date.toLocaleDateString();
     }
     // The API is called when the component is mounted
     onMount(async () => {
