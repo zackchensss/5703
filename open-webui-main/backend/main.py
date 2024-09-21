@@ -1103,13 +1103,22 @@ async def get_models(user=Depends(get_verified_user)):
 
 @app.get("/api/subscription/status")
 async def get_subscription_status(user=Depends(get_verified_user)):
+    print("读到用户订阅")
     if user.subscription_status is None:
         raise HTTPException(status_code=404, detail="User subscription not found")
+    print(f"User: {user.subscription_start_time}, Subscription status: {user.orvip}")
     return {
         "subscription_start_time": user.subscription_start_time,
         "subscription_expiration": user.subscription_expiration,
-        "orvip": user.orvip
+        "orvip": user.orvip,
+        "plan": user.subscription_product
     }
+# @app.get("/api/subscription/status")
+# async def get_subscription_status():
+#     return {
+#         "message": "测试后端没有认证依赖"
+#     }
+
 @app.post("/api/chat/completions")
 async def generate_chat_completions(form_data: dict, user=Depends(get_verified_user)):
     # await check_subscription_status(user)

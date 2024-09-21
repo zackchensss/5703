@@ -6,11 +6,12 @@ export const message = writable("");
 // Function to check subscription status
 export async function checkSubscriptionStatus() {
     try {
-      const response = await fetch("/api/subscription/status", {
+      //const token = localStorage.token;
+      const response = await fetch("http://localhost:8080/api/subscription/status", {
         method: "GET",
         headers: {
           "Content-Type": "application/json",
-          Authorization: "Bearer ${token}"
+          "Authorization": `Bearer ${localStorage.getItem("token")}`
         }
       });
   

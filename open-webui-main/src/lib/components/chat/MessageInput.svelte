@@ -315,9 +315,12 @@
 		// Check subscription status when the component is mounted
 		onMount(async () => {
 		try {
+		    console.log("函数执行");
 			const data = await checkSubscriptionStatus();
-			if (data && data.subscription_status) {
-			subscriptionStatus = data.subscription_status;
+			console.log("读取数据：" + data.orvip);
+			if (data && data.orvip) {
+			subscriptionStatus = data.orvip;
+			console.log("用户信息:"+ subscriptionStatus);
 			message = data.message;
 			}
 		} catch (error) {
@@ -330,7 +333,7 @@
 		}
 
 		function submitForm() {
-		if (subscriptionStatus !== "paid") {
+		if (subscriptionStatus != true) {
 			showSubscriptionPopup();
 		} else {
 			// If the user is subscribed, submit the prompt

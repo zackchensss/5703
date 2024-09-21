@@ -62,9 +62,9 @@
                 {#if currentSubscription}
                     <div class="p-6 bg-gray-100 rounded-lg min-w-[400px]">
                         <p><strong>Plan:</strong> {currentSubscription.plan}</p>
-                        <p><strong>Status:</strong> {currentSubscription.status}</p>
-                        <p><strong>Start Date:</strong> {currentSubscription.startDate}</p>
-                        <p><strong>End Date:</strong> {currentSubscription.endDate}</p>
+                        <p><strong>Status:</strong> {currentSubscription.orvip}</p>
+                        <p><strong>Start Date:</strong> {currentSubscription.subscription_start_time}</p>
+                        <p><strong>End Date:</strong> {currentSubscription.subscription_expiration}</p>
                     </div>
                 {:else}
                     <p>No current subscription found.</p>

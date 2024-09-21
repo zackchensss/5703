@@ -2,7 +2,13 @@
 
 export async function getCurrentSubscription() {
     try {
-        const response = await fetch('/api/subscription/status');
+        const response = await fetch("http://localhost:8080/api/subscription/status", {
+        method: "GET",
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": `Bearer ${localStorage.getItem("token")}`
+        }
+        });
         if (!response.ok) {
             throw new Error('Failed to fetch current subscription');
         }
@@ -16,7 +22,13 @@ export async function getCurrentSubscription() {
 export async function getSubscriptionHistory() {
     // Implement if there is a corresponding endpoint in main.py
     try {
-        const response = await fetch('/api/subscription/history'); // Update this endpoint if necessary
+        const response = await fetch("http://localhost:8080/api/subscription/status", {
+        method: "GET",
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": `Bearer ${localStorage.getItem("token")}`
+        }
+        });// Update this endpoint if necessary
         if (!response.ok) {
             throw new Error('Failed to fetch subscription history');
         }
