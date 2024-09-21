@@ -315,7 +315,7 @@
 		// Check subscription status when the component is mounted
 		onMount(async () => {
 		try {
-		    console.log("函数执行");
+		    console.log("读取数据：");
 			const data = await checkSubscriptionStatus();
 			console.log("读取数据：" + data.orvip);
 			if (data && data.orvip) {

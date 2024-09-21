@@ -24,7 +24,10 @@
     // Initialization variable
     let currentSubscription: Subscription | null = null;
     let subscriptionHistory: Subscription[] = [];
-
+    function formatTimestamp(timestamp) {
+        const date = new Date(timestamp * 1000);
+        return date.toLocaleString();
+    }
     // The API is called when the component is mounted
     onMount(async () => {
         try {
@@ -63,8 +66,8 @@
                     <div class="p-6 bg-gray-100 rounded-lg min-w-[400px]">
                         <p><strong>Plan:</strong> {currentSubscription.plan}</p>
                         <p><strong>Status:</strong> {currentSubscription.orvip}</p>
-                        <p><strong>Start Date:</strong> {currentSubscription.subscription_start_time}</p>
-                        <p><strong>End Date:</strong> {currentSubscription.subscription_expiration}</p>
+                        <p><strong>Start Date:</strong> {formatTimestamp(currentSubscription.subscription_start_time)}</p>
+                        <p><strong>End Date:</strong> {formatTimestamp(currentSubscription.subscription_expiration)}</p>
                     </div>
                 {:else}
                     <p>No current subscription found.</p>
